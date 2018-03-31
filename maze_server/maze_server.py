@@ -1,6 +1,7 @@
 from time import sleep
 from serial import Serial
 import numpy as np
+import cv2
 
 
 def wait_for_confirmation():
@@ -57,10 +58,12 @@ def send_movement():
         takes user input.
         validates input.
         sends input.
+
+        sudo pip3 install opencv-python
     '''
     while True:
-        blank_image = np.zeros((500, 500, 3), np.uint8)
-
+        blank_image = np.zeros((500, 10000, 3), np.uint8)
+        cv2.imshow("Welcome", blank_image)
 
 
 
@@ -68,4 +71,5 @@ def send_movement():
 # if running this specific script, await user command
 if __name__ == "__main__":
     file = open("test_maze_3.txt", "r")
-    send_maze(file)
+    # send_maze(file)
+    send_movement()
