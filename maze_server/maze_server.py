@@ -2,6 +2,7 @@ from time import sleep
 from serial import Serial
 import numpy as np
 import cv2
+import MazeGen
 
 
 def wait_for_confirmation():
@@ -39,21 +40,13 @@ def send_maze(file):
             stripped = line_string.rstrip("\r\n")
             print(stripped)
             if stripped[0] == 'S':   # S indicates the start of the maze gen.
-                x = 0
-                y = 0
                 for l in file:
                     print(l)
                     encoded = l.encode("ASCII")
                     ser.write(encoded)
-                    for w in l:
-                        if w == "W":
-                            maze_array[x][y] = True
-                        else:
-                            maze_array[x][y] = False
-                        x += 1
-                    x = 0
-                    y += 1
-                    # wait_for_confirmation()  #TODO Not working right trying without
+                    maze_array.append(l)
+
+                    # wait_for_confirmation()  #TODO Not working
                 o = "O"
                 encoded = o.encode("ASCII")
                 ser.write(encoded)
@@ -84,26 +77,23 @@ def validate_movement(input_key, x, y, maze_array):
             updated current_location
     '''
     valid = False
-    if input_key == "D":  # down arrow keys
-        valid = maze_array[x][y+1]
-        print(maze_array[x][y+1])
-        if valid == 0.0:
+    if (input_key == "D") and (y != size-1):  # down arrow keys
+        if maze_array[y+1][x] != "W":
+            valid = True
             y += 1
-    if input_key == "R":  # right arrow key
-        valid = maze_array[x+1][y]
-        print(valid)
-        if valid == 0.0:
+    elif input_key == "R" and (x != size-1):  # right arrow key
+        if maze_array[y][x+1] != "W":
+            valid = True
             x += 1
-    if input_key == "U":  # up arrow keys
-        valid = maze_array[x][y-1]
-        print(valid)
-        if valid == 0.0:
+    elif input_key == "U" and (y != 0):  # up arrow keys
+        if maze_array[y-1][x] != "W":
+            valid = True
             y -= 1
-    if input_key == "L":  # left arrow keys
-        valid = maze_array[x-1][y]
-        print(valid)
-        if valid == 0.0:
+    elif input_key == "L" and (x != 0):  # left arrow keys
+        if maze_array[y][x-1] != "W":
+            valid = True
             x -= 1
+
 
     # TODO check if movement is valid based on current_location
     # print(input_key, "Here")
@@ -116,7 +106,7 @@ def validate_movement(input_key, x, y, maze_array):
                 ser.write(encoded)
                 line = ser.readline()
                 if not line:
-                    print("waiting")
+                    # print("waiting")
                     continue
                 line_string = line.decode("ASCII")
                 stripped = line_string.rstrip("\r\n")
@@ -155,7 +145,7 @@ def title_screen(file, maze_array):
     cv2.imshow("A-MAZE-ING GAME", title)
     cv2.moveWindow("A-MAZE-ING GAME", 0, 0)
     once = True
-    x, y = 1, 1
+    x, y = 0, 0
     while True:
         input_key = cv2.waitKey(0) & 0xFF
         if input_key == 0x0D and once:
@@ -173,16 +163,16 @@ def title_screen(file, maze_array):
         cv2.moveWindow("A-MAZE-ING GAME", 0, 0)
 
         if input_key == 0x54:  # down arrow keys
-            print("D")
+            # print("D")
             x, y = validate_movement("D", x, y, maze_array)
         if input_key == 0x53:  # right arrow key
-            print("R")
+            # print("R")
             x, y = validate_movement("R", x, y, maze_array)
         if input_key == 0x52:  # up arrow keys
-            print("U")
+            # print("U")
             x, y = validate_movement("U", x, y, maze_array)
         if input_key == 0x51:  # left arrow keys
-            print("L")
+            # print("L")
             x, y = validate_movement("L", x, y, maze_array)
         if input_key == 0x1B:  # escape
             break
@@ -197,8 +187,10 @@ def title_screen(file, maze_array):
 
 
 if __name__ == "__main__":
-    file = open("test_maze_2.txt", "r")
+    MazeGen.maze_gen(5)
+    file = open("sendfile.txt", "r")
     g = file
-    maze_array = np.empty([100, 100])
+    size = 15
+    maze_array = []
 
     title_screen(g, maze_array)

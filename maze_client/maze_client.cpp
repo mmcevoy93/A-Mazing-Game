@@ -5,6 +5,7 @@
 #include "map_drawing.h"
 uint16_t x_prime;
 uint16_t y_prime;
+uint16_t size = 16;
 // the variables to be shared across the project, they are declared here!
 shared_vars shared;
 
@@ -59,29 +60,33 @@ void draw_maze(){
       incomingByte = Serial.read();
       if (incomingByte == '\n') {
         Serial.print("Q");
-        y += 20;
+        y += size;
         x = 0;
       }
       if (incomingByte == -1) continue;
       if (incomingByte == '%') continue;
       if (incomingByte == 'W') {
-        tft.fillRect(x, y, 20, 20, 0x0000);
-        x += 20;
+        tft.fillRect(x, y, size, size, 0x0000);
+        x += size;
         continue;
       }
       if (incomingByte == 'P') {
-        tft.fillRect(x, y, 20, 20, 0xFFFF);
-        x += 20;
+        tft.fillRect(x, y, size, size, 0xFFFF);
+        x += size;
         continue;
       }
       if (incomingByte == 'S'){
-        tft.fillRect(x, y, 20, 20, 0x00FF00);
+        tft.fillRect(x, y, size, size, 0x00FF00);
         x_prime = x;
         y_prime = y;
-        x += 20;
+        x += size;
         continue;
       }
-
+      if (incomingByte == 'F'){
+        tft.fillRect(x, y, size, size, 0xF000);
+        x += size;
+        continue;
+      }
       if (incomingByte == 'O'){
         curr_state == ending;
         break;
@@ -104,29 +109,28 @@ void move_cursor(){
     while (Serial.available() == 0);
     incomingByte = Serial.read();
     Serial.print("S");
-
     if (incomingByte == 'R'){
-      tft.fillRect(x, y, 20, 20, 0xFFFF);
-      x += 20;
-      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      tft.fillRect(x, y, size, size, 0xFFFF);
+      x += size;
+      tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'L'){
-      tft.fillRect(x, y, 20, 20, 0xFFFF);
-      x -= 20;
-      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      tft.fillRect(x, y, size, size, 0xFFFF);
+      x -= size;
+      tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'U'){
-      tft.fillRect(x, y, 20, 20, 0xFFFF);
-      y -= 20;
-      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      tft.fillRect(x, y, size, size, 0xFFFF);
+      y -= size;
+      tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'D'){
-      tft.fillRect(x, y, 20, 20, 0xFFFF);
-      y += 20;
-      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      tft.fillRect(x, y, size, size, 0xFFFF);
+      y += size;
+      tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     Serial.flush();
@@ -137,7 +141,6 @@ int main() {
   setup();
   Serial.println("LETS START");
   draw_maze();
-
   Serial.flush();
   move_cursor();
   while (true) {
