@@ -142,13 +142,14 @@ void move_cursor(){
 
 int main() {
   setup();
-  Serial.println("LETS START");
+
 
   while (true) {
     tft.fillScreen(0x001F);
+    Serial.println("LETS START");
     draw_maze();
     Serial.flush();
     move_cursor();
-
+    Serial.flush();
   }
 }

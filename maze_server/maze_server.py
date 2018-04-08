@@ -58,7 +58,7 @@ def send_maze(file):
             sleep(2)
 
 
-def validate_movement(input_key, x, y, maze_array):
+def validate_movement(input_key, x, y, z, maze_array):
     '''
         this will validate the keys entered to ensure it is a valid move
         if it is the move will be sent to the arduino and the lcd will update
@@ -96,6 +96,9 @@ def validate_movement(input_key, x, y, maze_array):
     elif input_key == "O":
         valid = True
 
+    if maze_array[y][x] == "F":
+        input_key = "O"
+        z = 1
     # TODO check if movement is valid based on current_location
     # print(input_key, "Here")
     if valid:
@@ -118,7 +121,7 @@ def validate_movement(input_key, x, y, maze_array):
                     ser.write(encoded)
                     break
                 sleep(3)
-    return x, y
+    return x, y, z
 
 
 def title_screen(file, maze_array):
@@ -146,7 +149,7 @@ def title_screen(file, maze_array):
     cv2.imshow("A-MAZE-ING GAME", title)
     cv2.moveWindow("A-MAZE-ING GAME", 0, 0)
     once = True
-    x, y = 0, 0
+    x, y, z = 0, 0, 0
     while True:
         input_key = cv2.waitKey(0) & 0xFF
         if input_key == 0x0D and once:
@@ -165,18 +168,20 @@ def title_screen(file, maze_array):
 
         if input_key == 0x54:  # down arrow keys
             # print("D")
-            x, y = validate_movement("D", x, y, maze_array)
+            x, y, z = validate_movement("D", x, y, 0, maze_array)
         if input_key == 0x53:  # right arrow key
             # print("R")
-            x, y = validate_movement("R", x, y, maze_array)
+            x, y, z = validate_movement("R", x, y, 0, maze_array)
         if input_key == 0x52:  # up arrow keys
             # print("U")
-            x, y = validate_movement("U", x, y, maze_array)
+            x, y, z = validate_movement("U", x, y, 0, maze_array)
         if input_key == 0x51:  # left arrow keys
             # print("L")
-            x, y = validate_movement("L", x, y, maze_array)
+            x, y, z = validate_movement("L", x, y, 0, maze_array)
         if input_key == 0x1B:  # escape
-            x, y = validate_movement("O", x, y, maze_array)
+            x, y, z = validate_movement("O", x, y, 0, maze_array)
+            break
+        if z == 1:
             break
 
     title = np.zeros((800, 1500, 3), np.uint8)
@@ -189,10 +194,9 @@ def title_screen(file, maze_array):
 
 
 if __name__ == "__main__":
-    size = 27
+    size = 15  # 27
     MazeGen.maze_gen(size)
     file = open("sendfile.txt", "r")
     g = file
     maze_array = []
-
     title_screen(g, maze_array)
