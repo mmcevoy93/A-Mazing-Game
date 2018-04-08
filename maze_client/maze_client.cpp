@@ -5,8 +5,8 @@
 #include "map_drawing.h"
 uint16_t x_prime;
 uint16_t y_prime;
-uint16_t size = 9;
-// the variables to be shared across the project, they are declared here!
+uint16_t size = 9; //our aim was to change the size but seems to cause more
+                   // more problems if it moves from 9
 shared_vars shared;
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(clientpins::tft_cs, clientpins::tft_dc);
