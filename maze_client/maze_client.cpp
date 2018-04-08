@@ -5,7 +5,7 @@
 #include "map_drawing.h"
 uint16_t x_prime;
 uint16_t y_prime;
-uint16_t size = 16;
+uint16_t size = 9;
 // the variables to be shared across the project, they are declared here!
 shared_vars shared;
 
@@ -28,7 +28,7 @@ void setup() {
   tft.begin();
   Serial.flush(); // get rid of any leftover bits
   // initially no path is stored
-  tft.fillScreen(0xF008);
+  tft.fillScreen(0x001F);
 }
 
 
@@ -133,6 +133,9 @@ void move_cursor(){
       tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
+    else if (incomingByte == 'O'){
+      break;
+    }
     Serial.flush();
   }
 }
@@ -140,10 +143,12 @@ void move_cursor(){
 int main() {
   setup();
   Serial.println("LETS START");
-  draw_maze();
-  Serial.flush();
-  move_cursor();
+
   while (true) {
-    Serial.print("T");
+    tft.fillScreen(0x001F);
+    draw_maze();
+    Serial.flush();
+    move_cursor();
+
   }
 }

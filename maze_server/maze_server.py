@@ -93,7 +93,8 @@ def validate_movement(input_key, x, y, maze_array):
         if maze_array[y][x-1] != "W":
             valid = True
             x -= 1
-
+    elif input_key == "O":
+        valid = True
 
     # TODO check if movement is valid based on current_location
     # print(input_key, "Here")
@@ -175,6 +176,7 @@ def title_screen(file, maze_array):
             # print("L")
             x, y = validate_movement("L", x, y, maze_array)
         if input_key == 0x1B:  # escape
+            x, y = validate_movement("O", x, y, maze_array)
             break
 
     title = np.zeros((800, 1500, 3), np.uint8)
@@ -187,10 +189,10 @@ def title_screen(file, maze_array):
 
 
 if __name__ == "__main__":
-    MazeGen.maze_gen(5)
+    size = 27
+    MazeGen.maze_gen(size)
     file = open("sendfile.txt", "r")
     g = file
-    size = 15
     maze_array = []
 
     title_screen(g, maze_array)
