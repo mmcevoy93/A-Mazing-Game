@@ -3,7 +3,8 @@
 #include <SD.h>
 #include "consts_and_types.h"
 #include "map_drawing.h"
-
+uint16_t x_prime;
+uint16_t y_prime;
 // the variables to be shared across the project, they are declared here!
 shared_vars shared;
 
@@ -49,7 +50,7 @@ void draw_maze(){
       // 'E' as a confirmation of all the waypoints have been sent.
       // The server is sending this but since everything is working it seems
       // redundant to this now
-
+      Serial.print("Q");
       Serial.flush();
       break;
     }
@@ -58,22 +59,30 @@ void draw_maze(){
       incomingByte = Serial.read();
       if (incomingByte == '\n') {
         Serial.print("Q");
-        y += 5;
+        y += 20;
         x = 0;
       }
       if (incomingByte == -1) continue;
       if (incomingByte == '%') continue;
       if (incomingByte == 'W') {
-        tft.fillRect(x, y, 5, 5, 0x0000);
-        x += 5;
+        tft.fillRect(x, y, 20, 20, 0x0000);
+        x += 20;
         continue;
       }
       if (incomingByte == 'P') {
-        tft.fillRect(x, y, 5, 5, 0xFFFF);
-        x += 5;
+        tft.fillRect(x, y, 20, 20, 0xFFFF);
+        x += 20;
         continue;
       }
-      if (y==210){
+      if (incomingByte == 'S'){
+        tft.fillRect(x, y, 20, 20, 0x00FF00);
+        x_prime = x;
+        y_prime = y;
+        x += 20;
+        continue;
+      }
+
+      if (incomingByte == 'O'){
         curr_state == ending;
         break;
       }
@@ -88,17 +97,39 @@ void draw_maze(){
 
 void move_cursor(){
   char incomingByte;
-  uint16_t x = 5;
-  uint16_t y = 5;
-  tft.fillRect(x, y, 5, 5, 0x001F);
+  uint16_t x = x_prime;
+  uint16_t y = y_prime;
+  //tft.fillRect(x, y, 5, 5, 0x001F);
   while(true){
     while (Serial.available() == 0);
     incomingByte = Serial.read();
+    Serial.print("S");
+
     if (incomingByte == 'R'){
-      tft.fillRect(x, y, 5, 5, 0xFFFF);
-      x += 5;
-      tft.fillRect(x, y, 5, 5, 0x001F);
+      tft.fillRect(x, y, 20, 20, 0xFFFF);
+      x += 20;
+      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      while (Serial.read() != 'Q');
     }
+    else if (incomingByte == 'L'){
+      tft.fillRect(x, y, 20, 20, 0xFFFF);
+      x -= 20;
+      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      while (Serial.read() != 'Q');
+    }
+    else if (incomingByte == 'U'){
+      tft.fillRect(x, y, 20, 20, 0xFFFF);
+      y -= 20;
+      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      while (Serial.read() != 'Q');
+    }
+    else if (incomingByte == 'D'){
+      tft.fillRect(x, y, 20, 20, 0xFFFF);
+      y += 20;
+      tft.fillRect(x, y, 20, 20, 0x0FF0);
+      while (Serial.read() != 'Q');
+    }
+    Serial.flush();
   }
 }
 
@@ -108,6 +139,7 @@ int main() {
   draw_maze();
 
   Serial.flush();
+  move_cursor();
   while (true) {
     Serial.print("T");
   }
