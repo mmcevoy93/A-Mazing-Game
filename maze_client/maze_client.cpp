@@ -110,25 +110,25 @@ void move_cursor(){
     incomingByte = Serial.read();
     Serial.print("S");
     if (incomingByte == 'R'){
-      tft.fillRect(x, y, size, size, 0xFFFF);
+      tft.fillRect(x, y, size, size, 0xFFF0);
       x += size;
       tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'L'){
-      tft.fillRect(x, y, size, size, 0xFFFF);
+      tft.fillRect(x, y, size, size, 0xFFF0);
       x -= size;
       tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'U'){
-      tft.fillRect(x, y, size, size, 0xFFFF);
+      tft.fillRect(x, y, size, size, 0xFFF0);
       y -= size;
       tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'D'){
-      tft.fillRect(x, y, size, size, 0xFFFF);
+      tft.fillRect(x, y, size, size, 0xFFF0);
       y += size;
       tft.fillRect(x, y, size, size, 0x0FF0);
       while (Serial.read() != 'Q');
