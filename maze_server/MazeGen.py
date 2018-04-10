@@ -320,6 +320,8 @@ def maze_gen(size):
         # print(maze[i])
 
     new_days = open('sendfile.txt', 'w')
+    new_days.write(str(size)[0])
+    new_days.write('\n')
     for i in range(size):
         for j in range(size):
             if (i == 0) and (j == 0):

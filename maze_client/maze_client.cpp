@@ -5,7 +5,7 @@
 #include "map_drawing.h"
 uint16_t x_prime;
 uint16_t y_prime;
-uint16_t size = 9; //our aim was to change the size but seems to cause more
+uint16_t size = 26; //our aim was to change the size but seems to cause more
                    // more problems if it moves from 9
 shared_vars shared;
 
@@ -39,10 +39,11 @@ void draw_maze(){
   //State functions to cycle through different parts of our communication
   enum State {ready_for_maze, waiting_for_line, ending};
   State curr_state = ready_for_maze;
-  uint16_t x = 0;
-  uint16_t y = 0;
+  int16_t x = 0;
+  int16_t y = 0;
   char incomingByte;
   while(true){
+    Serial.flush();
     while (Serial.available() == 0);
     if (curr_state == ending){
       // this is the last part of the communication. We break outta loop and
@@ -65,6 +66,28 @@ void draw_maze(){
       }
       if (incomingByte == -1) continue;
       if (incomingByte == '%') continue;
+
+      if (incomingByte == '1') {
+        size = 16;
+        y = -16;
+        continue;
+      }
+      if (incomingByte == '9') {
+        size = 26;
+        y = -26;
+        continue;
+      }
+      if (incomingByte == '2') {
+        size = 9;
+        y= -9;
+        continue;
+      }
+      if (incomingByte == '5') {
+        size = 4;
+        y= -4;
+        continue;
+      }
+
       if (incomingByte == 'W') {
         tft.fillRect(x, y, size, size, 0x0000);
         x += size;
@@ -106,9 +129,12 @@ void move_cursor(){
   uint16_t y = y_prime;
   //tft.fillRect(x, y, 5, 5, 0x001F);
   while(true){
+
+    Serial.flush();
     while (Serial.available() == 0);
+
     incomingByte = Serial.read();
-    Serial.print("S");
+    Serial.print("*");
     if (incomingByte == 'R'){
       tft.fillRect(x, y, size, size, 0xFFF0);
       x += size;
@@ -134,11 +160,14 @@ void move_cursor(){
       while (Serial.read() != 'Q');
     }
     else if (incomingByte == 'O'){
+      
+      while (Serial.read() != 'Q');
       break;
     }
     Serial.flush();
   }
 }
+
 
 int main() {
   setup();
