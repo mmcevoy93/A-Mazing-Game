@@ -1,86 +1,47 @@
 from time import sleep
-from serial import Serial
 import numpy as np
 import cv2
 import MazeGen
 import time
 
 
-def wait_for_confirmation():
-    '''
-        We use this function to 'wait' for the arduino has recieved the sent
-        message and loops until the arduino sends the 'Q' character
-
-        Arguments:
-            None
-        Returns:
-            None
-    '''
-    with Serial("/dev/ttyACM0", baudrate=9600, timeout=0.1) as ser:
-        while True:
-            line = ser.readline()
-            line_string = line.decode("ASCII")
-            stripped = line_string.rstrip("\r\n")
-            if stripped == 'Q':
-                break
-            else:
-                print('Waiting for Q got: ', stripped)
-            sleep(2)
-
-
-def send_maze(file):
-    '''
-        This maze takes the generated maze file and sends it to the arduino
-        line by line. It also fills the global list maze_array. You may be
-        thinking that this might be redundent. Why not just have the MazeGen
-        just return this list instead of creating a text file? Well my partner
-        and I were working in parallel and I was using the text files were easy
-        to make into a test maze that I could practice sending over to the
-        arduino while my partner worked on the maze generation and when it came
-        down to the colaberation we just suck to it. Adds to our run time
-        but it is minimal
-
-        Arguments:
-            a read only file type of the maze generation text file
-        Returns:
-            list of the maze_array for us to use later for movement validation
-    '''
-    with Serial("/dev/ttyACM0", baudrate=9600, timeout=0.001) as ser:
-        out_line = "%"
-        encoded = out_line.encode("ASCII")
-        ser.write(encoded)
-        while True:
-            line = ser.readline()
-            if not line:
-                print("Arduino likely stuck in loop")
-                print("Reset arduino if this message appears continuously")
-                continue
-            line_string = line.decode("ASCII")
-            stripped = line_string.rstrip("\r\n")
-            if stripped[0] == 'S':   # S indicates the start of the maze gen.
-                for l in file:
-                    encoded = l.encode("ASCII")
-                    ser.write(encoded)
-                    maze_array.append(l)
-                    # Tried to have a confirmation handshake here after each
-                    # line was sent but it was getting stuck half the time
-                    # and just worked fine as is.
-                o = "O"
-                # "O" indicates that all the file has been read and
-                # arduino can move on to the move cursour function
-                encoded = o.encode("ASCII")
-                ser.write(encoded)
-                return maze_array
-            else:
-                out_line = "%"
-                # does absolutly nothing but had this in for
-                # assignment 1 and it wouldn't work without it
-                encoded = out_line.encode("ASCII")
-                ser.write(encoded)
-            sleep(2)
+def display_maze(file, title):
+    x = 630
+    y = 175
+    count = 0
+    for l in file:
+        maze_array.append(l)
+        for w in l:
+            if w == '1':
+                size_0 = 16
+            if w == '9':
+                size_0 = 26
+            if w == '2':
+                size_0 = 9
+            if w == '5':
+                size_0 = 4
+            elif w == 'S':
+                cv2.rectangle(title, (x, y), (x + size_0, y + size_0),
+                              (0, 255, 0), -1)
+                x += size_0
+            elif w == 'W':
+                cv2.rectangle(title, (x, y), (x + size_0, y + size_0),
+                              (0, 0, 0), -1)
+                x += size_0
+            elif w == 'P':
+                cv2.rectangle(title, (x, y), (x + size_0, y + size_0),
+                              (255, 255, 255), -1)
+                x += size_0
+            elif w == 'F':
+                cv2.rectangle(title, (x, y), (x + size_0, y + size_0),
+                              (0, 0, 255), -1)
+                x += size_0
+        y += size_0
+        x = 630
+    return size_0
 
 
-def validate_movement(input_key, x, y, z, maze_array):
+def validate_movement(input_key, x, y, z, maze_array, title, x_t, y_t, size_0):
     '''
         this will validate the keys entered to ensure it is a valid move
         if it is the move will be sent to the arduino and the lcd will update
@@ -139,29 +100,34 @@ def validate_movement(input_key, x, y, z, maze_array):
     # recieved
     # NOTE This is where our unexpected and unpredictable loop occurs. The
     # problem lies on the arduino side
+
     if valid:
-        with Serial("/dev/ttyACM0", baudrate=9600, timeout=0.001) as ser:
-            k = input_key
-            encoded = k.encode("ASCII")
-            ser.write(encoded)
-            while True:
-                # we continuously send the input_key to the ardunio until it
-                # responds that it got it. Once it does it will be stuck
-                # in a loop waiting for us to send 'Q' to indicate that we
-                # can move on
-                ser.write(encoded)
-                line = ser.readline()
-                if not line:
-                    continue
-                line_string = line.decode("ASCII")
-                stripped = line_string.rstrip("\r\n")
-                if stripped[0] == '*':
-                    q = 'Q'
-                    encoded = q.encode("ASCII")
-                    ser.write(encoded)
-                    break
-                sleep(1)
-    return x, y, z
+        if input_key == "D":
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (150, 255, 0), -1)
+            y_t += size_0
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (0, 255, 0), -1)
+        if input_key == "U":
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (150, 255, 0), -1)
+            y_t -= size_0
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (0, 255, 0), -1)
+        if input_key == "L":
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (150, 255, 0), -1)
+            x_t -= size_0
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (0, 255, 0), -1)
+        if input_key == "R":
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (150, 255, 0), -1)
+            x_t += size_0
+            cv2.rectangle(title, (x_t, y_t), (x_t + size_0, y_t + size_0),
+                          (0, 255, 0), -1)
+
+    return x, y, z, x_t, y_t
 
 
 def title_screen(file, maze_array):
@@ -187,6 +153,8 @@ def title_screen(file, maze_array):
         Returns:
             None
     '''
+    x_t = 630
+    y_t = 175
     # Set up for text display and font
     font = cv2.FONT_HERSHEY_SIMPLEX
     title_text = "Maze Game"
@@ -210,8 +178,6 @@ def title_screen(file, maze_array):
                 (255, 255, 255), 2, cv2.LINE_AA)
     cv2.rectangle(title, (int(1500 / 2) - 80, 175),
                   (int(1500 / 2) + 80, 375), (255, 0, 0), -1)
-    cv2.putText(title, check_text, (0, 780), font, 1,
-                (255, 255, 255), 2, cv2.LINE_AA)
     cv2.imshow("A-MAZE-ING GAME", title)  # displays the title screen
     cv2.moveWindow("A-MAZE-ING GAME", 0, 0)
     once = True
@@ -222,33 +188,30 @@ def title_screen(file, maze_array):
         # intrest 'ENTER' 'ESC' 'UP' 'DOWN' 'LEFT' 'RIGHT'
         input_key = cv2.waitKey(0) & 0xFF
         if input_key == 0x0D and once:  # ENTER and we only want this to occur
-            maze_array = send_maze(file)  # send the generated maze to arduino
             # removes the title screen and makes command screen
             cv2.destroyAllWindows()
             title = np.zeros((800, 1500, 3), np.uint8)
-            cv2.putText(title, title_text, (350, 100), font, 4,
+            cv2.putText(title, title_text, (400, 100), font, 4,
                         (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(title, key_text, (270, 500), font, 2,
+            cv2.putText(title, key_text, (250, 500), font, 2,
                         (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(title, escape_text, (0, 780), font, 1,
+            cv2.putText(title, check_text, (0, 780), font, 1,
                         (255, 255, 255), 2, cv2.LINE_AA)
-            cv2.putText(title, error_text, (500, 780), font, 1,
-                        (255, 255, 255), 2, cv2.LINE_AA)
+            size_0 = display_maze(file, title)
+            y_t += size_0
             once = False
             start = time.time()
         cv2.imshow("A-MAZE-ING GAME", title)
         cv2.moveWindow("A-MAZE-ING GAME", 0, 0)
-        if input_key == 0x54 and not once:  # down arrow keys
-            x, y, z = validate_movement("D", x, y, 0, maze_array)
-        if input_key == 0x53 and not once:  # right arrow key
-            x, y, z = validate_movement("R", x, y, 0, maze_array)
-        if input_key == 0x52 and not once:  # up arrow keys
-            x, y, z = validate_movement("U", x, y, 0, maze_array)
-        if input_key == 0x51 and not once:  # left arrow keys
-            x, y, z = validate_movement("L", x, y, 0, maze_array)
-        if input_key == 0x1B and not once:  # escape
-            if not once:
-                x, y, z = validate_movement("O", x, y, 0, maze_array)
+        if (input_key == 0x54 or input_key == 1) and not once:  # down arrow ke
+            x, y, z, x_t, y_t = validate_movement("D", x, y, 0, maze_array, title, x_t, y_t, size_0)
+        elif (input_key == 0x53 or input_key == 3) and not once:  # right arrow k
+            x, y, z, x_t, y_t = validate_movement("R", x, y, 0, maze_array, title, x_t, y_t, size_0)
+        elif (input_key == 0x52 or input_key == 0) and not once:  # up arrow keys
+            x, y, z, x_t, y_t = validate_movement("U", x, y, 0, maze_array, title, x_t, y_t, size_0)
+        elif (input_key == 0x51 or input_key == 2) and not once:  # left arrow ke
+            x, y, z, x_t, y_t = validate_movement("L", x, y, 0, maze_array, title, x_t, y_t, size_0)
+        elif input_key == 0x1B and not once:  # escape
             break
         if z == 1:
             break
