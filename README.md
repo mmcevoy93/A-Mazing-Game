@@ -1,4 +1,4 @@
-# final_project
+# A-Mazing Game
 
 This is our final project THE A-MAZING-Game
 
